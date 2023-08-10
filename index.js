@@ -12,18 +12,18 @@ const authRouter = require('./routes/auth');
 
 const app = express();
 
-var corsOptions = {
-  origin: '*',
-  credentials: true,
-  exposedHeaders: ["set-cookie"]
-};
-app.use(cors(corsOptions))
+// var corsOptions = {
+//   origin: '*',
+//   credentials: true,
+//   exposedHeaders: ["set-cookie"]
+// };
 app.use(json({limit: '2mb'}))
+app.use(cors())
 app.use(logger('dev'));
 app.use(cookieParser())
 
 // app.use('/admin', adminRouter);
-app.use('/auth', authRouter);
+app.use('/auth/sso', authRouter);
 // app.use('/budgoose', budgooseRouter);
 
 function init() {
@@ -35,8 +35,7 @@ function init() {
       poolIncrement : 0,
       poolMax       : 4,
       poolMin       : 4,
-      poolAlias     : 'admin',
-      enableStatistics : true,
+      poolAlias     : 'admin'
     }).then(() => {
       console.log('Connected to database: Admin');
     }).catch(() => {
