@@ -39,20 +39,7 @@ class AuthController {
         return res.json({error_message: 'Khong hop le'});
       }
 
-      // exp 30min
-      const token = jwt.sign({
-        exp: Math.floor(Date.now() / 1000) + (60 * 30),
-        data: {
-          username: username
-        },
-      }, process.env.SECRET_KEY);
-      // exp 7day
-      const reToken = jwt.sign({
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7),
-        data: {
-          username: username
-        },
-      }, process.env.SECRET_KEY_RE);
+      const {token, reToken} = generateToken({username: username}, {username: username});
 
       return res
         .cookie("access_token", token, {
@@ -105,20 +92,7 @@ class AuthController {
         return res.json({error_message: data[0].MESSAGE_ERROR});
       }
 
-      // exp 30min
-      const token = jwt.sign({
-        exp: Math.floor(Date.now() / 1000) + (60 * 30),
-        data: {
-          username: username
-        },
-      }, process.env.SECRET_KEY);
-      // exp 7day
-      const reToken = jwt.sign({
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7),
-        data: {
-          username: username
-        },
-      }, process.env.SECRET_KEY_RE);
+      const {token, reToken} = generateToken({username: username}, {username: username});
 
       return res
         .cookie("access_token", token, {
@@ -135,6 +109,24 @@ class AuthController {
     } catch (error) {
       return res.json({error_message: error + ''});
     }
+  }
+}
+
+function generateToken(dataToken, dataRetoken) {
+  // exp 30min
+  const token = jwt.sign({
+    exp: Math.floor(Date.now() / 1000) + (60 * 30),
+    data: dataToken,
+  }, process.env.SECRET_KEY);
+  // exp 7day
+  const reToken = jwt.sign({
+    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7),
+    data: dataRetoken,
+  }, process.env.SECRET_KEY_RE);
+
+  return {
+    token: token,
+    reToken: reToken
   }
 }
 
