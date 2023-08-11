@@ -56,14 +56,14 @@ class AuthController {
 
       return res
         .cookie("access_token", token, {
-          httpOnly: true,
+          httpOnly: false,
           secure: false,
-          domain: 'localhost'
+          domain: 'nmtung.dev'
         })
         .cookie("refresh_token", reToken, {
-          httpOnly: true,
+          httpOnly: false,
           secure: false,
-          domain: 'localhost'
+          domain: 'nmtung.dev'
         })
         .json({ message: "Logged in successfully 😊 👌" });
     } catch (error) {

@@ -12,13 +12,12 @@ const authRouter = require('./routes/auth');
 
 const app = express();
 
-// var corsOptions = {
-//   origin: '*',
-//   credentials: true,
-//   exposedHeaders: ["set-cookie"]
-// };
+var corsOptions = {
+  origin: ['https://budgoose.nmtung.dev'],
+  credentials: true
+};
 app.use(json({limit: '2mb'}))
-app.use(cors())
+app.use(cors(corsOptions))
 app.use(logger('dev'));
 app.use(cookieParser())
 
