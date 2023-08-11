@@ -2,7 +2,7 @@ name: Deploy to VPS oracle
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
