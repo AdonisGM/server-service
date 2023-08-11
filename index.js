@@ -12,8 +12,16 @@ const authRouter = require('./routes/auth');
 
 const app = express();
 
+var subDomain = [
+  'budgoose',
+  'sso',
+  'admin',
+  'www'
+]
 var corsOptions = {
-  origin: ['https://budgoose.nmtung.dev'],
+  origin: subDomain.map((sub) => {
+    return `https://${sub}.nmtung.dev`
+  }),
   credentials: true
 };
 app.use(json({limit: '2mb'}))
