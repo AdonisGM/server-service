@@ -45,16 +45,16 @@ class AuthController {
         .cookie("access_token", token, {
           httpOnly: false,
           secure: false,
-          domain: 'nmtung.dev'
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost'
         })
         .cookie("refresh_token", reToken, {
           httpOnly: false,
           secure: false,
-          domain: 'nmtung.dev'
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost'
         })
         .json({ message: "Logged in successfully 😊 👌" });
     } catch (error) {
-      return res.json({error_message: error + ''});
+      return res.status(400).json({error_message: error + ''});
     }
   }
 
@@ -92,22 +92,11 @@ class AuthController {
         return res.json({error_message: data[0].MESSAGE_ERROR});
       }
 
-      const {token, reToken} = generateToken({username: username}, {username: username});
-
       return res
-        .cookie("access_token", token, {
-          httpOnly: true,
-          secure: true,
-          domain: '.nmtung.dev'
-        })
-        .cookie("refresh_token", reToken, {
-          httpOnly: true,
-          secure: true,
-          domain: '.nmtung.dev'
-        })
-        .json({ message: "Logged in successfully 😊 👌" });
+        .json({ message: "Sign up successfully 😊 👌" });
     } catch (error) {
-      return res.json({error_message: error + ''});
+      // code 400: bad request
+      return res.status(400).json({error_message: error + ''});
     }
   }
 }

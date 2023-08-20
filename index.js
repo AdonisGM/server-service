@@ -13,15 +13,14 @@ const authRouter = require('./routes/auth');
 const app = express();
 
 var subDomain = [
-  'budgoose',
-  'sso',
-  'admin',
-  'www'
+  'https://budgoose.nmtung.dev',
+  'https://sso.nmtung.dev',
+  'https://admin.nmtung.dev',
+  'https://www.nmtung.dev',
+  'http://localhost:5173',
 ]
 var corsOptions = {
-  origin: subDomain.map((sub) => {
-    return `https://${sub}.nmtung.dev`
-  }),
+  origin: subDomain,
   credentials: true
 };
 app.use(json({limit: '2mb'}))
@@ -29,9 +28,7 @@ app.use(cors(corsOptions))
 app.use(logger('dev'));
 app.use(cookieParser())
 
-// app.use('/admin', adminRouter);
-app.use('/auth/sso', authRouter);
-// app.use('/budgoose', budgooseRouter);
+app.use('/account', authRouter);
 
 function init() {
   try {
@@ -58,8 +55,8 @@ function init() {
       poolAlias     : 'budgoose'
     }).then(() => {
       console.log('Connected to database: Budgoose');
-    }).catch(() => {
-      console.log('Connect fail database: Budgoose');
+    }).catch((e) => {
+      console.log('Connect fail database: Budgoose', e);
     });
 
     const port = process.env.PORT || 5000
