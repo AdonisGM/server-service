@@ -17,6 +17,7 @@ var subDomain = [
   'https://sso.nmtung.dev',
   'https://admin.nmtung.dev',
   'https://www.nmtung.dev',
+  'http://account.nmtung.dev',
   'http://localhost:5173',
 ]
 var corsOptions = {
