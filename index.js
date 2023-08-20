@@ -38,28 +38,14 @@ function init() {
       password      : process.env.DB_ADMIN_PASSWORD,
       connectString : process.env.DB_CONNECT_STRING,
       poolIncrement : 0,
-      poolMax       : 4,
-      poolMin       : 4,
+      poolMax       : 20,
+      poolMin       : 20,
       poolAlias     : 'admin'
     }).then(() => {
       console.log('Connected to database: Admin');
     }).catch(() => {
       console.log('Connect fail database: Admin');
     });
-    oracledb.createPool({
-      user          : process.env.DB_BUDGOOSE_USER,
-      password      : process.env.DB_BUDGOOSE_PASSWORD,
-      connectString : process.env.DB_CONNECT_STRING,
-      poolIncrement : 0,
-      poolMax       : 4,
-      poolMin       : 4,
-      poolAlias     : 'budgoose'
-    }).then(() => {
-      console.log('Connected to database: Budgoose');
-    }).catch((e) => {
-      console.log('Connect fail database: Budgoose', e);
-    });
-
     const port = process.env.PORT || 5000
     app.listen(port, () => {
       console.log('---=== Server started ===---')

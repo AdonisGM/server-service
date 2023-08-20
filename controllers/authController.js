@@ -41,6 +41,7 @@ class AuthController {
 
       const {token, reToken} = generateToken({username: username}, {username: username});
 
+
       return res
         .cookie("access_token", token, {
           httpOnly: false,
@@ -55,6 +56,14 @@ class AuthController {
         .json({ message: "Logged in successfully 😊 👌" });
     } catch (error) {
       return res.status(400).json({error_message: error + ''});
+    } finally {
+      if (connection) {
+        try {
+          await connection.close();
+        } catch (err) {
+          console.error(err);
+        }
+      }
     }
   }
 
@@ -97,6 +106,14 @@ class AuthController {
     } catch (error) {
       // code 400: bad request
       return res.status(400).json({error_message: error + ''});
+    } finally {
+      if (connection) {
+        try {
+          await connection.close();
+        } catch (err) {
+          console.error(err);
+        }
+      }
     }
   }
 }
