@@ -38,13 +38,13 @@ function init() {
       password      : process.env.DB_ADMIN_PASSWORD,
       connectString : process.env.DB_CONNECT_STRING,
       poolIncrement : 0,
-      poolMax       : 15,
-      poolMin       : 15,
+      poolMax       : Number(process.env.DB_POOL_MAX),
+      poolMin       : Number(process.env.DB_POOL_MAX),
       poolAlias     : 'admin'
     }).then(() => {
       console.log('Connected to database: Admin');
-    }).catch(() => {
-      console.log('Connect fail database: Admin');
+    }).catch((e) => {
+      console.log('Connect fail database: Admin ' + e.message);
     });
     const port = process.env.PORT || 5000
     app.listen(port, () => {

@@ -1,17 +1,16 @@
 const oracledb = require("oracledb");
 const bcrypt = require("bcrypt");
-var jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
 class AuthController {
   Login = async (req, res) => {
     const {username, password} = req.body;
-    console.log('Cookies: ', req.signedCookies)
     let connection
     try {
       oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
       connection = await oracledb.getConnection('admin');
 
-      const resultDb = await connection.execute(
+      let resultDb = await connection.execute(
         `BEGIN
             pkg_api.main_api(:user, :cmd, :data, :result);
         END;`,
@@ -23,14 +22,9 @@ class AuthController {
         }
       );
 
-      const resultSet = resultDb.outBinds.result;
-      let row;
-      let data = [];
-      while ((row = await resultSet.getRow())) {
-        data.push(row);
-      }
+      let data = await convertResultDbToArray(resultDb);
 
-      if (data.length == 1 && data[0].MESSAGE_ERROR != null) {
+      if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
         return res.json({error_message: data[0].MESSAGE_ERROR});
       }
 
@@ -41,6 +35,23 @@ class AuthController {
 
       const {token, reToken} = generateToken({username: username}, {username: username});
 
+      // resultDb = await connection.execute(
+      //   `BEGIN
+      //       pkg_api.main_api(:user, :cmd, :data, :result);
+      //   END;`,
+      //   {
+      //     user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: data[0].C_USERNAME},
+      //     cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.create_refresh_token'},
+      //     data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: reToken, refreshTokenOld: null})},
+      //     result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 4000}
+      //   }
+      // );
+      //
+      // data = await convertResultDbToArray(resultDb);
+      //
+      // if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
+      //   return res.json({error_message: data[0].MESSAGE_ERROR});
+      // }
 
       return res
         .cookie("access_token", token, {
@@ -55,7 +66,7 @@ class AuthController {
         })
         .json({ message: "Logged in successfully 😊 👌" });
     } catch (error) {
-      return res.status(400).json({error_message: error + ''});
+      return res.status(400).json({error_message: error + '123'});
     } finally {
       if (connection) {
         try {
@@ -90,14 +101,9 @@ class AuthController {
         }
       );
 
-      const resultSet = resultDb.outBinds.result;
-      let row;
-      let data = [];
-      while ((row = await resultSet.getRow())) {
-        data.push(row);
-      }
+      const data = await convertResultDbToArray(resultDb);
 
-      if (data.length == 1 && data[0].MESSAGE_ERROR != null) {
+      if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
         return res.json({error_message: data[0].MESSAGE_ERROR});
       }
 
@@ -116,6 +122,90 @@ class AuthController {
       }
     }
   }
+
+  RefreshToken = async (req, res) => {
+    const dataUser = req.dataUser;
+    const refresh_token = req.signedCookies.refresh_token;
+
+    const {token, reToken} = generateToken(dataUser, dataUser);
+
+    let connection
+    try {
+      oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+      connection = await oracledb.getConnection('admin');
+
+      let resultDb = await connection.execute(
+        `BEGIN
+            pkg_api.main_api(:user, :cmd, :data, :result);
+        END;`,
+        {
+          user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'system'},
+          cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.get_refresh_token'},
+          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({})},
+          result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 4000}
+        }
+      );
+
+      let data = await convertResultDbToArray(resultDb);
+
+      if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
+        return res.status(401).json({error_message: data[0].MESSAGE_ERROR});
+      }
+
+      resultDb = await connection.execute(
+        `BEGIN
+            pkg_api.main_api(:user, :cmd, :data, :result);
+        END;`,
+        {
+          user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'system'},
+          cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.create_refresh_token'},
+          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: reToken, refreshTokenOld: refresh_token})},
+          result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 4000}
+        }
+      );
+
+      data = await convertResultDbToArray(resultDb);
+
+      if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
+        return res.status(401).json({error_message: data[0].MESSAGE_ERROR});
+      }
+
+      return res
+        .cookie("access_token", token, {
+          httpOnly: false,
+          secure: true,
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost'
+        })
+        .cookie("refresh_token", reToken, {
+          httpOnly: false,
+          secure: true,
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost'
+        })
+        .json({ message: "Refresh token successfully" });
+    } catch (error) {
+      // code 400: bad request
+      return res.status(401).json({error_message: error + ''});
+    } finally {
+      if (connection) {
+        try {
+          await connection.close();
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    }
+  }
+}
+
+async function convertResultDbToArray(resultDb) {
+  const resultSet = resultDb.outBinds.result;
+  let row;
+  let data = [];
+  while ((row = await resultSet.getRow())) {
+    data.push(row);
+  }
+
+  return data;
 }
 
 function generateToken(dataToken, dataRetoken) {
