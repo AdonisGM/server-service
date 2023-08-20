@@ -44,12 +44,12 @@ class AuthController {
       return res
         .cookie("access_token", token, {
           httpOnly: false,
-          secure: false,
+          secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost'
         })
         .cookie("refresh_token", reToken, {
           httpOnly: false,
-          secure: false,
+          secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost'
         })
         .json({ message: "Logged in successfully 😊 👌" });
