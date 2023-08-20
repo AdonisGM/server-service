@@ -38,8 +38,8 @@ function init() {
       password      : process.env.DB_ADMIN_PASSWORD,
       connectString : process.env.DB_CONNECT_STRING,
       poolIncrement : 0,
-      poolMax       : 20,
-      poolMin       : 20,
+      poolMax       : 15,
+      poolMin       : 15,
       poolAlias     : 'admin'
     }).then(() => {
       console.log('Connected to database: Admin');
