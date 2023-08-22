@@ -6,9 +6,8 @@ const oracledb = require("oracledb");
 const cookieParser = require("cookie-parser");
 require('dotenv').config()
 
-// const adminRouter = require('./routes/admin');
 const authRouter = require('./routes/auth');
-// const budgooseRouter = require('./routes/budgoose');
+const gatewayRouter = require('./routes/gateway');
 
 const app = express();
 
@@ -30,6 +29,7 @@ app.use(logger('dev'));
 app.use(cookieParser())
 
 app.use('/account', authRouter);
+app.use('/gateway', gatewayRouter);
 
 function init() {
   try {

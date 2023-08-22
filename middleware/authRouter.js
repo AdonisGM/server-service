@@ -1,8 +1,7 @@
-const oracledb = require("oracledb");
 const jwt = require('jsonwebtoken');
 
 const AuthRouter = (req, res, next) => {
-  const access_token = req.signedCookies.access_token;
+  const access_token = req.cookies.access_token;
 
   if (!access_token) {
     return res.status(401).json({error_message: 'Unauthorized'});
@@ -10,9 +9,11 @@ const AuthRouter = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(access_token, process.env.SECRET_KEY);
-    req.dataUser = decoded;
+    console.log(decoded)
+    req.dataUser = decoded.data;
     next();
   } catch (error) {
+    console.log(error)
     return res.status(401).json({error_message: 'Unauthorized'});
   }
 }
