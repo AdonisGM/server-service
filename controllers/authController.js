@@ -214,7 +214,7 @@ function generateToken(dataToken, dataRetoken) {
 
   // exp 30min
   const token = jwt.sign({
-    exp: Math.floor(Date.now() / 1000) + (60 * 1),
+    exp: Math.floor(Date.now() / 1000) + (60 * 10),
     data: dataToken,
   }, process.env.SECRET_KEY);
   // exp 7day
