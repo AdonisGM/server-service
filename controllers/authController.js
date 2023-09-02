@@ -57,12 +57,14 @@ class AuthController {
         .cookie("access_token", token, {
           httpOnly: false,
           secure: true,
-          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost'
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+          sameSite: 'none'
         })
         .cookie("refresh_token", reToken, {
           httpOnly: false,
           secure: true,
-          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost'
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+          sameSite: 'none'
         })
         .json({ message: "Logged in successfully 😊 👌" });
     } catch (error) {
@@ -176,12 +178,14 @@ class AuthController {
         .cookie("access_token", token, {
           httpOnly: false,
           secure: true,
-          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost'
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+          sameSite: 'none'
         })
         .cookie("refresh_token", reToken, {
           httpOnly: false,
           secure: true,
-          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost'
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+          sameSite: 'none'
         })
         .json({ message: "Refresh token successfully" });
     } catch (error) {

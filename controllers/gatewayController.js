@@ -11,7 +11,8 @@ class GatewayController {
       connection = await oracledb.getConnection('admin');
 
       let resultDb = await connection.execute(
-        `BEGIN
+        `
+        BEGIN
             pkg_api.main_api(:user, :cmd, :data, :result);
         END;`,
         {
@@ -25,7 +26,9 @@ class GatewayController {
       let dataRes = await convertResultDbToArray(resultDb);
 
       if (dataRes.length === 1 && dataRes[0].MESSAGE_ERROR != null) {
-        return res.json({error_message: dataRes[0].MESSAGE_ERROR});
+        return res.status(400).json({
+          error_message: dataRes[0].MESSAGE_ERROR.replace(/ORA-\d{5}: /g, ''),
+        });
       }
 
       return res.json({data: dataRes});
