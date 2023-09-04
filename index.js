@@ -17,6 +17,7 @@ var subDomain = [
   'https://admin.nmtung.dev',
   'https://www.nmtung.dev',
   'https://account.nmtung.dev',
+  'https://diary.nmtung.dev',
   'http://localhost:5173',
   'https://localhost:5173',
   'http://localhost:5174',
