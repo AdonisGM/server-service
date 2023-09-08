@@ -148,7 +148,7 @@ class AuthController {
       let data = await convertResultDbToArray(resultDb);
 
       if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
-        return res.status(401).json({error_message: data[0].MESSAGE_ERROR});
+        return res.status(499).json({error_message: data[0].MESSAGE_ERROR});
       }
 
       const dataUser = {
@@ -171,7 +171,7 @@ class AuthController {
       data = await convertResultDbToArray(resultDb);
 
       if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
-        return res.status(401).json({error_message: data[0].MESSAGE_ERROR});
+        return res.status(499).json({error_message: data[0].MESSAGE_ERROR});
       }
 
       return res
@@ -189,7 +189,7 @@ class AuthController {
         })
         .json({ message: "Refresh token successfully" });
     } catch (error) {
-      return res.status(401).json({error_message: error + ''});
+      return res.status(499).json({error_message: error + ''});
     } finally {
       if (connection) {
         try {

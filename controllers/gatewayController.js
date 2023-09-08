@@ -19,7 +19,7 @@ class GatewayController {
           user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: dataUser.username},
           cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: cmd},
           data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify(data)},
-          result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 4000}
+          result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 5267}
         }
       );
 
