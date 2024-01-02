@@ -1,5 +1,5 @@
 const schedule = require('node-schedule');
-const oracledb = require("oracledb");
+const oracledb = require('oracledb');
 
 const job = schedule.scheduleJob('* * */1 * * *', function () {
     callApiDb();
@@ -63,4 +63,13 @@ const callApiDb = async () => {
             }
         }
     }
+};
+
+const convertResultDbToArray = async (resultDb) => {
+    let data = [];
+    let row;
+    while ((row = await resultDb.outBinds.result.getRow())) {
+        data.push(row);
+    }
+    return data;
 };
