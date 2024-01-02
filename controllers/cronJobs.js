@@ -1,7 +1,8 @@
 const schedule = require('node-schedule');
 const oracledb = require('oracledb');
 
-const job = schedule.scheduleJob('* * */1 * * *', function () {
+// run every 1 hour
+const job = schedule.scheduleJob('0 0 * * * *', function () {
     callApiDb();
 });
 

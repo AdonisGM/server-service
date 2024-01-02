@@ -5,7 +5,7 @@ const {json} = require("body-parser");
 const oracledb = require("oracledb");
 const cookieParser = require("cookie-parser");
 require('dotenv').config()
-const cronJobs = require('./controllers/cronJobs');
+
 
 const authRouter = require('./routes/auth');
 const gatewayRouter = require('./routes/gateway');
@@ -48,6 +48,8 @@ function init() {
       poolAlias     : 'admin'
     }).then(() => {
       console.log('Connected to database: Admin');
+
+      const cronJobs = require('./controllers/cronJobs');
     }).catch((e) => {
       console.log('Connect fail database: Admin ' + e.message);
     });
