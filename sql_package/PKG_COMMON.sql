@@ -72,8 +72,8 @@ create or replace PACKAGE BODY PKG_COMMON AS
         return v_table_cursor;
     end split_string;
 
-    function raise_error_code (
-        p_code    varchar2,
+    procedure raise_error_code (
+        p_code    varchar2
     ) AS 
         v_str_res               varchar2(2000);
         v_cur_api_error_code    t_api_error_code%rowtype;
@@ -85,7 +85,7 @@ create or replace PACKAGE BODY PKG_COMMON AS
         where c_code = p_code;
 
         if (v_int_check = 0) THEN
-            raise_application_error(-20999, p_message);
+            raise_application_error(-20999, 'Error code not found!');
         end if;
 
         select * into v_cur_api_error_code
@@ -95,5 +95,5 @@ create or replace PACKAGE BODY PKG_COMMON AS
         v_str_res := '[' || v_cur_api_error_code.c_code || '-' || sys_guid() || ']:::[' || v_cur_api_error_code.c_type || ']:::[' || v_cur_api_error_code.c_description || ']';
 
         raise_application_error(-20999, v_str_res);
-    END raise_error;
+    END raise_error_code;
 END PKG_COMMON;

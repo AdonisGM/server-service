@@ -73,19 +73,19 @@ BEGIN
     select count(1) into v_int_total
     from t_mgt_module
     where c_username = p_user
-        and upper(c_module_name like '%' || v_str_module_name || '%');
+        and (v_str_module_name is null or upper(c_module_name) like '%' || v_str_module_name || '%');
 
     open p_table_cursor for
         select 
             v_int_total as total,
             c.*
         from (
-            select rownum as row_number, t.*
+            select rownum as row_number, b.*
             from (
                 select *
                 from t_mgt_module
                 where c_username = p_user
-                    and upper(c_module_name like '%' || v_str_module_name || '%')
+                    and (v_str_module_name is null or upper(c_module_name) like '%' || v_str_module_name || '%')
                 order by c_created_date desc
             ) b
         ) c
@@ -111,7 +111,7 @@ BEGIN
     select count(1) into v_int_check
     from t_mgt_module
     where c_username = p_user
-        and c_pk = v_str_pk;
+        and pk_mgt_module = v_str_pk;
 
     if v_int_check = 0 then
         pkg_common.raise_error_code('ERR_MGT_4_00000002');
@@ -215,22 +215,19 @@ BEGIN
         and pk_mgt_module = v_str_pk;
 
     open v_tbl_question for
-        select pk_mgt_question
-        from t_mgt_question
-        where c_username = p_user
-            and pk_mgt_module = v_str_pk;
+        select pk_mgt_module_question
+        from t_mgt_module_question
+        where fk_mgt_module = v_str_pk;
     
     loop
         fetch v_tbl_question into v_str_pk;
         exit when v_tbl_question%notfound;
 
-        delete from t_mgt_question
-        where c_username = p_user
-            and pk_mgt_question = v_str_pk;
+        delete from t_mgt_module_question
+        where pk_mgt_module_question = v_str_pk;
 
-        delete from t_mgt_answer
-        where c_username = p_user
-            and fk_mgt_question = v_str_pk;
+        delete from t_mgt_module_answer
+        where fk_mgt_module_question = v_str_pk;
     end loop;
 
     close v_tbl_question;

@@ -35,7 +35,7 @@ BEGIN
 
     -- Check exist user
     select count(1) into v_int_check
-    from t_mgt_user
+    from t_mgt_info
     where c_username = v_str_username;
     if (v_int_check = 0) THEN
         pkg_common.raise_error_code('ERR_MGT_4_00000001');

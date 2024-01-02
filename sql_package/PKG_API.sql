@@ -3,7 +3,7 @@ create or replace PACKAGE PKG_API AS
     PROCEDURE main_api (
         p_user      varchar2,
         p_cmd       varchar2,
-        P_data      varchar2,
+        P_data      JSON_OBJECT_T,
         p_result    out     pkg_common.table_cursor 
     );
     
@@ -15,7 +15,7 @@ create or replace PACKAGE BODY PKG_API AS
     PROCEDURE main_api (
         p_user      varchar2,
         p_cmd       varchar2,
-        p_data      varchar2,
+        p_data      JSON_OBJECT_T,
         p_result    out     pkg_common.table_cursor 
     ) as
         v_message   varchar2(4000);
