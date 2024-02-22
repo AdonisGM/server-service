@@ -6,7 +6,7 @@ const oracledb = require("oracledb");
 const cookieParser = require("cookie-parser");
 require('dotenv').config()
 
-
+ 
 const authRouter = require('./routes/auth');
 const gatewayRouter = require('./routes/gateway');
 
