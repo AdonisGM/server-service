@@ -2,7 +2,11 @@ name: Deploy to VPS oracle
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - 'main'
+    paths-ignore:
+      - 'sql_package/**'
+      - 'sql_table/**'
 
 jobs:
   build:

@@ -1,0 +1,8 @@
+CREATE OR REPLACE PACKAGE PKG_BUD_TRANS AS 
+
+
+procedure get_all_trans(
+    
+);
+
+END PKG_BUD_TRANS
