@@ -178,6 +178,7 @@ PROCEDURE add_item(
     p_data          JSON_OBJECT_T,
     p_table_cursor  OUT     pkg_common.table_cursor
 ) as 
+	v_str_pk_bud_management	varchar2(50);
 	v_str_fk_bud_holder		varchar2(50);
 	v_str_type				varchar2(50);
 	v_int_cash				number(20, 0);
@@ -186,7 +187,10 @@ PROCEDURE add_item(
 	v_int_is_installment	number(1, 0);
 
 	v_int_check 			integer;
+
+	v_cur_bud_management	t_bud_management%rowtype;
 begin
+	v_str_pk_bud_management	:=	trunc(p_data.get_string('pk_bud_management'));
 	v_str_fk_bud_holder		:=	trunc(p_data.get_string('fk_bud_holder'));
 	v_str_type				:=	trunc(p_data.get_string('type'));
 	v_int_cash				:=	p_data.get_number('cash');
@@ -223,59 +227,131 @@ begin
 		pkg_common.raise_error_code('ERR_BUD_1_00000004');
 	end if;
 
-	-- Create
-    insert into t_bud_management (
-		pk_bud_management,
-		fk_bud_holder,
-		c_username,
-		c_type,
-		c_cash_value,
-		c_cash_return,
-		c_note,
-		c_created_date,
-		c_created_by,
-		c_updated_date,
-		c_updated_by,
-		c_is_installment
-	)
-	values (
-		sys_guid(),
-		v_str_fk_bud_holder,
-		p_user,
-		v_str_type,
-		case when v_str_type = 'BORROW' then 0 else v_int_cash end,
-		case when v_str_type = 'BORROW' then v_int_cash else 0 end,
-		v_str_note,
-		sysdate,
-		p_user,
-		null,
-		null,
-		v_int_is_installment
-	);
+	if (v_str_pk_bud_management is null) then
+		-- Create
+		insert into t_bud_management (
+			pk_bud_management,
+			fk_bud_holder,
+			c_username,
+			c_type,
+			c_cash_value,
+			c_cash_return,
+			c_note,
+			c_created_date,
+			c_created_by,
+			c_updated_date,
+			c_updated_by,
+			c_is_installment
+		)
+		values (
+			sys_guid(),
+			v_str_fk_bud_holder,
+			p_user,
+			v_str_type,
+			v_int_cash,
+			0,
+			v_str_note,
+			sysdate,
+			p_user,
+			null,
+			null,
+			v_int_is_installment
+		);
 
-	-- Add transaction
-	if (v_str_type = 'BORROW') then
-		PKG_BUD_TRANS.create_item(
-			p_user          		=>	p_user,
-			p_str_fk_bud_management	=>	v_str_fk_bud_holder,
-			p_str_username			=>	p_user,
-			p_str_type				=>	v_str_type,
-			p_str_sub_type			=>	'ADD_BORROW',
-			p_int_cash_in			=>	v_int_cash,
-			p_int_cash_out			=>	0,
-			p_str_note				=>	v_str_note
+		-- Add transaction
+		if (v_str_type = 'BORROW') then
+			PKG_BUD_TRANS.create_item(
+				p_user          		=>	p_user,
+				p_str_fk_bud_management	=>	v_str_fk_bud_holder,
+				p_str_username			=>	p_user,
+				p_str_type				=>	v_str_type,
+				p_str_sub_type			=>	'ADD_BORROW',
+				p_int_cash_in			=>	v_int_cash,
+				p_int_cash_out			=>	0,
+				p_str_note				=>	v_str_note
+			);
+		else
+			PKG_BUD_TRANS.create_item(
+				p_user          		=>	p_user,
+				p_str_fk_bud_management	=>	v_str_fk_bud_holder,
+				p_str_username			=>	p_user,
+				p_str_type				=>	v_str_type,
+				p_str_sub_type			=>	'ADD_LOAN',
+				p_int_cash_in			=>	0,
+				p_int_cash_out			=>	v_int_cash,
+				p_str_note				=>	v_str_note
+			);
+		end if;
+	else 
+		-- Check exist
+		select count(1) into v_int_check
+		from t_bud_management
+		where pk_bud_management = v_str_pk_bud_management
+			and c_username = p_user;
+
+		if (v_int_check = 0) then
+			pkg_common.raise_error_code('ERR_BUD_1_00000007');
+		end if;
+
+		-- Get infomation
+		select * into v_cur_bud_management
+		from t_bud_management
+		where pk_bud_management = v_str_pk_bud_management
+			and rownum < 2;
+
+		if (v_cur_bud_management.c_is_installment = 1) then
+			-- Check exist trans
+			select count(1) into v_int_check
+			from t_bud_trans
+			where fk_bud_management = v_str_pk_bud_management;
+
+			if (v_int_check > 1) then
+				pkg_common.raise_error_code('ERR_BUD_1_00000008');
+			end if;
+		end if;
+
+		-- Update
+		update t_bud_management
+		set fk_bud_holder	=	v_str_fk_bud_holder,
+			c_username		=	p_user,
+			c_type			=	v_str_type,
+			c_cash_value	=	v_int_cash,
+			c_cash_return	=	0,
+			c_note			=	v_str_note,
+			c_updated_date	=	sysdate,
+			c_updated_by	=	p_user
+		where pk_bud_management = v_str_pk_bud_management;
+
+		-- Delete transaction
+		PKG_BUD_TRANS.delete_by_entry(
+			p_user						=>	p_user,
+			p_str_pk_bud_management		=>	v_str_pk_bud_management
 		);
-	else
-		PKG_BUD_TRANS.create_item(
-			p_user          		=>	p_user,
-			p_str_fk_bud_management	=>	v_str_fk_bud_holder,
-			p_str_username			=>	p_user,
-			p_str_type				=>	v_str_type,
-			p_str_sub_type			=>	'ADD_LOAN',
-			p_int_cash_in			=>	0,
-			p_int_cash_out			=>	v_int_cash,
-			p_str_note				=>	v_str_note
-		);
+
+		-- Add transaction
+		if (v_str_type = 'BORROW') then
+			PKG_BUD_TRANS.create_item(
+				p_user          		=>	p_user,
+				p_str_fk_bud_management	=>	v_str_fk_bud_holder,
+				p_str_username			=>	p_user,
+				p_str_type				=>	v_str_type,
+				p_str_sub_type			=>	'ADD_BORROW',
+				p_int_cash_in			=>	v_int_cash,
+				p_int_cash_out			=>	0,
+				p_str_note				=>	v_str_note
+			);
+		else
+			PKG_BUD_TRANS.create_item(
+				p_user          		=>	p_user,
+				p_str_fk_bud_management	=>	v_str_fk_bud_holder,
+				p_str_username			=>	p_user,
+				p_str_type				=>	v_str_type,
+				p_str_sub_type			=>	'ADD_LOAN',
+				p_int_cash_in			=>	0,
+				p_int_cash_out			=>	v_int_cash,
+				p_str_note				=>	v_str_note
+			);
+		end if;
 	end if;
 end;
 
@@ -315,5 +391,7 @@ begin
 	delete from t_bud_management
 	where pk_bud_management = v_str_pk_bud_management;
 end;
+
+
 
 END PKG_BUD_HOLDER;

@@ -192,7 +192,7 @@ BEGIN
 			p_int_cash_in,
 			p_int_cash_out,
 			p_str_note,
-			sysdate,
+			v_cur_bud_management.c_created_date,
 			p_user,
 			null,
 			null
