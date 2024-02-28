@@ -392,6 +392,70 @@ begin
 	where pk_bud_management = v_str_pk_bud_management;
 end;
 
+-----------------------------------------
+-- author:	Adonis Willer
+-- date:	26/02/2024
+-- desc:	Checkout item
+-----------------------------------------
+PROCEDURE delete_item(
+    p_user          VARCHAR2,
+    p_data          JSON_OBJECT_T,
+    p_table_cursor  OUT     pkg_common.table_cursor
+) as 
+	v_int_check 		integer;
 
+	v_str_pk_bud_holder			varchar2(50);
+	v_str_pk_bud_management		varchar2(50);
+	v_int_cash					number(20, 0);
+	v_str_type				varchar2(50);
+begin	
+	v_str_pk_bud_holder			:=	trunc(p_data.get_string('pk_bud_holder'));
+	v_str_pk_bud_management		:=	trunc(p_data.get_string('pk_bud_management'));
+	v_int_cash					:=	p_data.get_number('cash');
+	v_str_type					:=	trunc(p_data.get_number('status'));
+
+	if (v_str_pk_bud_holder is not null) then
+		-- Checkout by holder
+		
+	elsif (v_str_pk_bud_management is not null) then
+		-- Checkout by entry
+
+		-- Check exist
+		select count(1) into v_int_check
+		from t_bud_management
+		where pk_bud_management = v_str_pk_bud_management
+			and c_username = p_user;
+
+		if (v_int_check = 0) then
+			pkg_common.raise_error_code('');
+		end if;
+
+		-- Get data
+		select * into v_cur_bud_management
+		from t_bud_management
+		where pk_bud_management = p_str_pk_bud_management
+			and rownum < 2;
+
+		if (v_int_cash > v_cur_bud_management.c_cash_value - v_cur_bud_management.c_cash_return) then
+			pkg_common.raise_error_code('');
+		end if;
+
+		-- Update entry
+
+		-- Create trans checkout cash
+		PKG_BUD_TRANS.create_item(
+			p_user          		=>	p_user,
+			p_str_fk_bud_management	=>	v_str_fk_bud_holder,
+			p_str_username			=>	p_user,
+			p_str_type				=>	v_str_type,
+			p_str_sub_type			=>	'ADD_BORROW',
+			p_int_cash_in			=>	v_int_cash,
+			p_int_cash_out			=>	0,
+			p_str_note				=>	v_str_note
+		);
+	end if;
+
+	null;
+end;
 
 END PKG_BUD_HOLDER;
