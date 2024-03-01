@@ -397,7 +397,7 @@ end;
 -- date:	26/02/2024
 -- desc:	Checkout item
 -----------------------------------------
-PROCEDURE delete_item(
+PROCEDURE checkout_item(
     p_user          VARCHAR2,
     p_data          JSON_OBJECT_T,
     p_table_cursor  OUT     pkg_common.table_cursor
@@ -407,16 +407,122 @@ PROCEDURE delete_item(
 	v_str_pk_bud_holder			varchar2(50);
 	v_str_pk_bud_management		varchar2(50);
 	v_int_cash					number(20, 0);
-	v_str_type				varchar2(50);
+	v_str_type					varchar2(50);
+	v_str_note					varchar2(2000);
+
+	v_int_total_need_checkout	number(20, 6);
+	v_int_total_checkout		number(20, 6);
+	v_int_checkout_item			number(20, 6);
+	v_int_temp					number(20, 6);
 begin	
 	v_str_pk_bud_holder			:=	trunc(p_data.get_string('pk_bud_holder'));
 	v_str_pk_bud_management		:=	trunc(p_data.get_string('pk_bud_management'));
 	v_int_cash					:=	p_data.get_number('cash');
-	v_str_type					:=	trunc(p_data.get_number('status'));
+	v_str_type					:=	trunc(p_data.get_number('type'));
+	v_str_note					:=	trunc(p_data.get_number('note'));
+
+	-- Validate input
+	if ((v_int_type is null) or (v_int_type not in ('CHECKOUT_BORROW', 'CHECKOUT_LOAN'))) then
+		pkg_common.raise_error_code('ERR_BUD_1_00000009');
+	end if;
+
+	if (v_int_cash <= 0 is null or v_int_cash <= 0) then
+		pkg_common.raise_error_code('ERR_BUD_1_00000010');
+	end if;
 
 	if (v_str_pk_bud_holder is not null) then
 		-- Checkout by holder
+
+		-- Check exist
+		select count(1) into v_int_check
+		from t_bud_holder
+		where pk_bud_holder = v_str_pk_bud_holder
+			and c_username = p_user;
+
+		if (v_int_check = 0) then
+			pkg_common.raise_error_code('ERR_BUD_1_00000011');
+		end if;
 		
+		-- Check total need checkout
+		select sum(c_cash_value - c_cash_return) into v_int_total_need_checkout
+		from t_bud_management
+		where c_username = p_user
+			and c_cash_value != c_cash_return
+			and (
+				(v_int_type = 'CHECKOUT_BORROW' and c_type = 'BORROW') or
+				(v_int_type = 'CHECKOUT_LOAN' and c_type = 'LOAN')
+			) 
+			and c_is_installment != 1;
+
+		if (v_int_total_need_checkout > v_int_cash) then
+			pkg_common.raise_error_code('ERR_BUD_1_00000012');
+		end if;
+
+		-- Init cash checkout
+		v_int_total_checkout	:=	0;
+
+		for v_loop_item in 
+			select pk_bud_management, c_type
+			from t_bud_management
+			where c_username = p_user
+				and c_cash_value != c_cash_return
+				and (
+					(v_int_type = 'CHECKOUT_BORROW' and c_type = 'BORROW') or
+					(v_int_type = 'CHECKOUT_LOAN' and c_type = 'LOAN')
+				) 
+				and c_is_installment != 1
+			order by c_created_date asc
+		loop
+
+			-- Process each item
+			select c_cash_checkout - c_cash_return into v_int_checkout_item
+			from t_bud_management
+			where pk_bud_management = v_loop_item.pk_bud_management
+				and rownum < 2;
+
+			if (v_int_total_need_checkout != v_int_total_checkout) then
+				v_int_temp	:=	v_int_total_need_checkout - v_int_total_checkout;
+
+				if (v_int_temp > v_int_checkout_item) then
+					v_int_temp	:=	v_int_checkout_item;
+				end if;
+
+				-- Update entry
+				update t_bud_management
+				set c_cash_return = c_cash_return + v_int_temp,
+					c_updated_by = p_user,
+					c_updated_date = sysdate
+				where pk_bud_management = v_loop_item.pk_bud_management;
+
+				-- Create trans checkout cash
+				if (v_loop_item.c_type = 'BORROW') then
+					PKG_BUD_TRANS.create_item(
+						p_user          		=>	p_user,
+						p_str_fk_bud_management	=>	v_loop_item.pk_bud_management,
+						p_str_username			=>	p_user,
+						p_str_type				=>	v_str_type,
+						p_str_sub_type			=>	v_str_type,
+						p_int_cash_in			=>	0,
+						p_int_cash_out			=>	v_int_temp,
+						p_str_note				=>	v_str_note
+					);
+				else
+					PKG_BUD_TRANS.create_item(
+						p_user          		=>	p_user,
+						p_str_fk_bud_management	=>	v_loop_item.pk_bud_management,
+						p_str_username			=>	p_user,
+						p_str_type				=>	v_str_type,
+						p_str_sub_type			=>	v_str_type,
+						p_int_cash_in			=>	v_int_temp,
+						p_int_cash_out			=>	0,
+						p_str_note				=>	v_str_note
+					);
+				end if;
+
+				v_int_total_checkout	:=	v_int_total_checkout + v_int_temp;
+			end if;
+		end loop;
+
 	elsif (v_str_pk_bud_management is not null) then
 		-- Checkout by entry
 
@@ -427,7 +533,7 @@ begin
 			and c_username = p_user;
 
 		if (v_int_check = 0) then
-			pkg_common.raise_error_code('');
+			pkg_common.raise_error_code('ERR_BUD_1_00000013');
 		end if;
 
 		-- Get data
@@ -437,25 +543,42 @@ begin
 			and rownum < 2;
 
 		if (v_int_cash > v_cur_bud_management.c_cash_value - v_cur_bud_management.c_cash_return) then
-			pkg_common.raise_error_code('');
+			pkg_common.raise_error_code('ERR_BUD_1_00000014');
 		end if;
 
 		-- Update entry
+		update t_bud_management
+		set c_cash_return = c_cash_return + v_int_cash,
+			c_updated_by = p_user,
+			c_updated_date = sysdate
+		where pk_bud_management = v_str_pk_bud_management;
 
 		-- Create trans checkout cash
-		PKG_BUD_TRANS.create_item(
-			p_user          		=>	p_user,
-			p_str_fk_bud_management	=>	v_str_fk_bud_holder,
-			p_str_username			=>	p_user,
-			p_str_type				=>	v_str_type,
-			p_str_sub_type			=>	'ADD_BORROW',
-			p_int_cash_in			=>	v_int_cash,
-			p_int_cash_out			=>	0,
-			p_str_note				=>	v_str_note
-		);
+		if (v_cur_bud_management.c_type = 'BORROW') then
+			PKG_BUD_TRANS.create_item(
+				p_user          		=>	p_user,
+				p_str_fk_bud_management	=>	v_str_fk_bud_holder,
+				p_str_username			=>	p_user,
+				p_str_type				=>	'CHECKOUT_BORROW',
+				p_str_sub_type			=>	'CHECKOUT_BORROW',
+				p_int_cash_in			=>	0,
+				p_int_cash_out			=>	v_int_cash,
+				p_str_note				=>	v_str_note
+			);
+		else
+			PKG_BUD_TRANS.create_item(
+				p_user          		=>	p_user,
+				p_str_fk_bud_management	=>	v_str_fk_bud_holder,
+				p_str_username			=>	p_user,
+				p_str_type				=>	'CHECKOUT_LOAN',
+				p_str_sub_type			=>	'CHECKOUT_LOAN',
+				p_int_cash_in			=>	v_int_cash,
+				p_int_cash_out			=>	0,
+				p_str_note				=>	v_str_note
+			);
+		end if;
+		
 	end if;
-
-	null;
 end;
 
 END PKG_BUD_HOLDER;
