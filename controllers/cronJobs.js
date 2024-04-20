@@ -76,14 +76,14 @@ const getEventPending = async () => {
 
     const dataItem = await connectDatabase('pkg_tele_management.get_event', {})
 
-    const data = {
-        method: 'POST',
-        body: JSON.parse(dataItem[0].C_MESSAGE),
-    }
-
-    console.log(data)
-
     if (dataItem !== undefined && dataItem !== null && dataItem.length > 0) {
+        const data = {
+            method: 'POST',
+            body: JSON.parse(dataItem[0].C_MESSAGE),
+        }
+
+        console.log(data)
+
         fetch(`https://api.telegram.org/bot${dataItem[0].TOKEN}/sendMessage`, data)
           .then(res => res.json())
           .then(data => {
