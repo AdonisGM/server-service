@@ -16,7 +16,8 @@ class GatewayController {
             PKG_API_TELEGRAM_WEBHOOK.main_api_webhook(:data);
         END;`,
 				{
-					data: { dir: oracledb.BIND_IN, type: oracledb.CLOB, val: JSON.stringify(data)}
+					data: { dir: oracledb.BIND_IN, type: oracledb.CLOB, val: JSON.stringify(data)},
+					result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 5267}
 				}
 			);
 
