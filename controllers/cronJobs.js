@@ -80,6 +80,9 @@ const getEventPending = async () => {
         const data = {
             method: 'POST',
             body: JSON.parse(dataItem[0].C_MESSAGE),
+            headers: {
+                'Content-Type': 'application/json',
+            },
         }
 
         console.log(data)
