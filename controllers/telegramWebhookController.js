@@ -13,7 +13,7 @@ class GatewayController {
 			let resultDb = await connection.execute(
 				`
         BEGIN
-            pkg_api.main_api_webhook(:data);
+            PKG_API_TELEGRAM_WEBHOOK.main_api_webhook(:data);
         END;`,
 				{
 					data: { dir: oracledb.BIND_IN, type: oracledb.CLOB, val: JSON.stringify(data)}
