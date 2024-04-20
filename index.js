@@ -9,6 +9,7 @@ require('dotenv').config()
  
 const authRouter = require('./routes/auth');
 const gatewayRouter = require('./routes/gateway');
+const telegramWebhookRouter = require('./routes/telegramWebhook');
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use(cookieParser())
 
 app.use('/account', authRouter);
 app.use('/gateway', gatewayRouter);
+app.use('/telegram_webhook', telegramWebhookRouter);
 
 function init() {
   try {
