@@ -80,7 +80,7 @@ const getEventPending = async () => {
     if (dataItem !== undefined && dataItem !== null && dataItem.length > 0) {
         fetch(`https://api.telegram.org/bot${dataItem[0].TOKEN}/sendMessage`, {
             method: 'POST',
-            body: JSON.stringify(dataItem[0].C_MESSAGE),
+            body: JSON.parse(dataItem[0].C_MESSAGE),
         })
           .then(res => res.json())
           .then(data => {
