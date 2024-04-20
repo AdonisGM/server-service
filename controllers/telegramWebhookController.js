@@ -20,7 +20,15 @@ class GatewayController {
 				}
 			);
 
-			return res.json({data: ''});
+			let dataRes = await convertResultDbToArray(resultDb);
+
+			if (dataRes.length === 1 && dataRes[0].MESSAGE_ERROR != null) {
+				return res.status(200).json({
+					error_message: dataRes[0].MESSAGE_ERROR.replace(/ORA-\d{5}: /g, ''),
+				});
+			}
+
+			return res.json({data: dataRes});
 		} catch (error) {
 			console.log(error)
 			return res.json({data: ''});
