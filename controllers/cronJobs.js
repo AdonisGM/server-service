@@ -1,9 +1,14 @@
 const schedule = require('node-schedule');
 const oracledb = require('oracledb');
+const connectDatabase = require("../modal/database");
 
 // run every 1 hour
 const job = schedule.scheduleJob('0 0 * * * *', function () {
     callApiDb();
+});
+
+const job = schedule.scheduleJob('*/2 * * * * *', function () {
+    getEventPending();
 });
 
 const callApiDb = async () => {
@@ -65,6 +70,24 @@ const callApiDb = async () => {
         }
     }
 };
+
+const getEventPending = async () => {
+    console.log('--- getEventPending ---')
+
+    const dataItem = await connectDatabase('pkg_tele_management.get_event', {})
+
+    if (dataItem.length > 0) {
+        fetch(`https://api.telegram.org/bot${dataItem[0].TOKEN}/sendMessage`, {
+            method: 'POST',
+            body: JSON.stringify(dataItem[0].C_MESSAGE),
+        })
+          .then(res => res.json())
+          .then(data => {
+              console.log(data)
+          })
+          .catch(err => console.log(err));
+    }
+}
 
 const convertResultDbToArray = async (resultDb) => {
     let data = [];
