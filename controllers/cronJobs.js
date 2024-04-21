@@ -72,8 +72,6 @@ const callApiDb = async () => {
 };
 
 const getEventPending = async () => {
-    console.log('--- getEventPending ---')
-
     const dataItem = await connectDatabase('pkg_tele_management.get_event', {})
 
     if (dataItem !== undefined && dataItem !== null && dataItem.length > 0) {
@@ -85,12 +83,10 @@ const getEventPending = async () => {
             },
         }
 
-        console.log(data)
-
         fetch(`https://api.telegram.org/bot${dataItem[0].TOKEN}/sendMessage`, data)
           .then(res => res.json())
           .then(data => {
-              console.log(data)
+              console.log('Send notification success');
           })
           .catch(err => console.log(err));
     }
