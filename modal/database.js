@@ -45,9 +45,11 @@ const connectDatabase = async (cmd, data) => {
 	} catch (error) {
 		console.log('error', error)
 	} finally {
+		console.log('finally', connection)
 		if (connection) {
 			try {
 				await connection.close();
+				console.log('finally, close')
 			} catch (err) {
 				console.error(err.message);
 			}
