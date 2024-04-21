@@ -23,7 +23,7 @@ const connectDatabase = async (cmd, data) => {
 		);
 
 		let dataRes = await convertResultDbToArray(resultDb);
-
+		console.log('connection', connection)
 		if (connection) {
 			try {
 				await connection.close();
