@@ -7,8 +7,8 @@ const job = schedule.scheduleJob('0 0 * * * *', function () {
     callApiDb();
 });
 
-const abc = schedule.scheduleJob('*/1 * * * * *', function () {
-    // getEventPending();
+const abc = schedule.scheduleJob('*/5 * * * * *', function () {
+    getEventPending();
 });
 
 const callApiDb = async () => {
