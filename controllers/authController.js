@@ -12,17 +12,16 @@ class AuthController {
 
       let resultDb = await connection.execute(
         `BEGIN
-            pkg_api.main_api(:user, :cmd, :data, :result);
+            pkg_api.main_api(:user, :cmd, :data);
         END;`,
         {
           user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: username},
           cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.get_info_login'},
-          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({username: username})},
-          result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 4000}
+          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({username: username})}
         }
       );
 
-      let data = await convertResultDbToArray(resultDb);
+      let data = convertResultDbToArray(resultDb);
 
       if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
         return res.json({error_message: data[0].MESSAGE_ERROR});
@@ -37,17 +36,16 @@ class AuthController {
 
       resultDb = await connection.execute(
         `BEGIN
-            pkg_api.main_api(:user, :cmd, :data, :result);
+            pkg_api.main_api(:user, :cmd, :data);
         END;`,
         {
           user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: username},
           cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.create_refresh_token'},
-          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: reToken, refreshTokenOld: ''})},
-          result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 4000}
+          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: reToken, refreshTokenOld: ''})}
         }
       );
 
-      data = await convertResultDbToArray(resultDb);
+      data = convertResultDbToArray(resultDb);
 
       if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
         return res.json({error_message: data[0].MESSAGE_ERROR});
@@ -93,13 +91,12 @@ class AuthController {
 
       const resultDb = await connection.execute(
         `BEGIN
-            pkg_api.main_api(:user, :cmd, :data, :result);
+            pkg_api.main_api(:user, :cmd, :data);
         END;`,
         {
           user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'system'},
           cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.create_user'},
-          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({username: username, password: hashPassword, fullname: fullname, email: email})},
-          result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 4000}
+          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({username: username, password: hashPassword, fullname: fullname, email: email})}
         }
       );
 
@@ -135,13 +132,12 @@ class AuthController {
 
       let resultDb = await connection.execute(
         `BEGIN
-            pkg_api.main_api(:user, :cmd, :data, :result);
+            pkg_api.main_api(:user, :cmd, :data);
         END;`,
         {
           user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'system'},
           cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.get_refresh_token'},
-          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: refresh_token})},
-          result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 4000}
+          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: refresh_token})}
         }
       );
 
@@ -158,13 +154,12 @@ class AuthController {
 
       resultDb = await connection.execute(
         `BEGIN
-            pkg_api.main_api(:user, :cmd, :data, :result);
+            pkg_api.main_api(:user, :cmd, :data);
         END;`,
         {
           user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: data[0].C_USERNAME},
           cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.create_refresh_token'},
-          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: reToken, refreshTokenOld: refresh_token})},
-          result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 4000}
+          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: reToken, refreshTokenOld: refresh_token})}
         }
       );
 
@@ -202,15 +197,12 @@ class AuthController {
   }
 }
 
-async function convertResultDbToArray(resultDb) {
-  const resultSet = resultDb.outBinds.result;
-  let row;
-  let data = [];
-  while ((row = await resultSet.getRow())) {
-    data.push(row);
+function convertResultDbToArray(resultDb) {
+  if (!resultDb.implicitResults) {
+    return []
   }
 
-  return data;
+  return resultDb.implicitResults[0];
 }
 
 function generateToken(dataToken, dataRetoken) {
