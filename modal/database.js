@@ -22,8 +22,9 @@ const connectDatabase = async (cmd, data) => {
 			}
 		);
 
-		let dataRes = await convertResultDbToArray(resultDb);
 		console.log('connection', connection)
+		let dataRes = await convertResultDbToArray(resultDb);
+		console.log('connection-1', connection)
 		if (connection) {
 			try {
 				await connection.close();
