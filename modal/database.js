@@ -33,13 +33,13 @@ const connectDatabase = async (cmd, data) => {
 	} catch (error) {
 
 	} finally {
-		if (connection) {
-			try {
-				await connection.close();
-			} catch (err) {
-				console.error(err.message);
-			}
-		}
+		// if (connection) {
+		// 	try {
+		// 		await connection.close();
+		// 	} catch (err) {
+		// 		console.error(err.message);
+		// 	}
+		// }
 	}
 }
 
