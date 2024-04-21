@@ -22,18 +22,7 @@ const connectDatabase = async (cmd, data) => {
 			}
 		);
 
-		console.log('connection', connection)
 		let dataRes = await convertResultDbToArray(resultDb);
-		console.log('connection-1', connection)
-		if (connection) {
-			try {
-				await connection.close();
-				console.log('connection.close();')
-			} catch (err) {
-				console.log('connection.close() - ERROR;')
-				console.error(err.message);
-			}
-		}
 
 		if (dataRes.length === 1 && dataRes[0].MESSAGE_ERROR != null) {
 			return res.status(400).json({
@@ -43,13 +32,12 @@ const connectDatabase = async (cmd, data) => {
 
 		return dataRes;
 	} catch (error) {
-		console.log('error', error)
+
 	} finally {
-		console.log('finally', connection)
 		if (connection) {
 			try {
 				await connection.close();
-				console.log('finally, close')
+				console.log('closed connection')
 			} catch (err) {
 				console.error(err.message);
 			}
