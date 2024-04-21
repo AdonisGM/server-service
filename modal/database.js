@@ -24,19 +24,20 @@ const connectDatabase = async (cmd, data) => {
 
 		let dataRes = await convertResultDbToArray(resultDb);
 
-		if (dataRes.length === 1 && dataRes[0].MESSAGE_ERROR != null) {
-			return res.status(400).json({
-				error_message: dataRes[0].MESSAGE_ERROR.replace(/ORA-\d{5}: /g, ''),
-			});
-		}
-
 		if (connection) {
 			try {
 				await connection.close();
 				console.log('connection.close();')
 			} catch (err) {
+				console.log('connection.close() - ERROR;')
 				console.error(err.message);
 			}
+		}
+
+		if (dataRes.length === 1 && dataRes[0].MESSAGE_ERROR != null) {
+			return res.status(400).json({
+				error_message: dataRes[0].MESSAGE_ERROR.replace(/ORA-\d{5}: /g, ''),
+			});
 		}
 
 		return dataRes;
