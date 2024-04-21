@@ -4,10 +4,10 @@ const connectDatabase = require("../modal/database");
 
 // run every 1 hour
 const job = schedule.scheduleJob('0 0 * * * *', function () {
-    callApiDb();
+    // callApiDb();
 });
 
-const abc = schedule.scheduleJob('*/5 * * * * *', function () {
+const abc = schedule.scheduleJob('*/2 * * * * *', function () {
     getEventPending();
 });
 

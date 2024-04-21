@@ -7,7 +7,6 @@ const connectDatabase = async (cmd, data) => {
 	try {
 		oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 		connection = await oracledb.getConnection('admin');
-		console.log('oracledb.getConnection(\'admin\');')
 
 		let resultDb = await connection.execute(
 			`
@@ -32,12 +31,11 @@ const connectDatabase = async (cmd, data) => {
 
 		return dataRes;
 	} catch (error) {
-
+		console.log(error.message);
 	} finally {
 		if (connection) {
 			try {
 				await connection.close();
-				console.log('closed connection')
 			} catch (err) {
 				console.error(err.message);
 			}
