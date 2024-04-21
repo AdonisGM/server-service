@@ -11,27 +11,18 @@ const connectDatabase = async (cmd, data) => {
 		let resultDb = await connection.execute(
 			`
         BEGIN
-            pkg_api_public.main_api(:user, :cmd, :data, :result);
+            pkg_api_public.main_api(:user, :cmd, :data);
         END;`,
 			{
 				user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: dataUser.username},
 				cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: cmd},
 				data: { dir: oracledb.BIND_IN, type: oracledb.CLOB, val: JSON.stringify(data)},
-				result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 5267}
 			}
 		);
 
-		let dataRes = await convertResultDbToArray(resultDb);
-
-		if (dataRes.length === 1 && dataRes[0].MESSAGE_ERROR != null) {
-			return res.status(400).json({
-				error_message: dataRes[0].MESSAGE_ERROR.replace(/ORA-\d{5}: /g, ''),
-			});
-		}
-
-		return dataRes;
+		return convertResultDbToArray(resultDb);
 	} catch (error) {
-		console.log(error.message);
+		console.log('error', error.message);
 	} finally {
 		if (connection) {
 			try {
@@ -43,13 +34,12 @@ const connectDatabase = async (cmd, data) => {
 	}
 }
 
-const convertResultDbToArray = async (resultDb) => {
-	let data = [];
-	let row;
-	while ((row = await resultDb.outBinds.result.getRow())) {
-		data.push(row);
+const convertResultDbToArray = (resultDb) => {
+	if (!resultDb.implicitResults) {
+		return []
 	}
-	return data;
+
+	return resultDb.implicitResults[0];
 }
 
 module.exports = connectDatabase

@@ -13,17 +13,16 @@ class GatewayController {
       let resultDb = await connection.execute(
         `
         BEGIN
-            pkg_api.main_api(:user, :cmd, :data, :result);
+            pkg_api.main_api(:user, :cmd, :data);
         END;`,
         {
           user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: dataUser.username},
           cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: cmd},
-          data: { dir: oracledb.BIND_IN, type: oracledb.CLOB, val: JSON.stringify(data)},
-          result: { dir: oracledb.BIND_OUT, type: oracledb.CURSOR, maxSize: 5267}
+          data: { dir: oracledb.BIND_IN, type: oracledb.CLOB, val: JSON.stringify(data)}
         }
       );
 
-      let dataRes = await convertResultDbToArray(resultDb);
+      let dataRes = convertResultDbToArray(resultDb);
 
       if (dataRes.length === 1 && dataRes[0].MESSAGE_ERROR != null) {
         return res.status(400).json({
@@ -46,13 +45,12 @@ class GatewayController {
   }
 }
 
-const convertResultDbToArray = async (resultDb) => {
-  let data = [];
-  let row;
-  while ((row = await resultDb.outBinds.result.getRow())) {
-    data.push(row);
+const convertResultDbToArray = (resultDb) => {
+  if (!resultDb.implicitResults) {
+    return []
   }
-  return data;
+
+  return resultDb.implicitResults[0];
 }
 
 module.exports = new GatewayController();
