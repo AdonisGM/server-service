@@ -43,7 +43,7 @@ const connectDatabase = async (cmd, data) => {
 
 		return dataRes;
 	} catch (error) {
-
+		console.log('error', error)
 	} finally {
 		if (connection) {
 			try {
