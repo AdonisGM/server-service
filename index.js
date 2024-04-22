@@ -35,7 +35,7 @@ var corsOptions = {
 };
 app.use(json({limit: '2mb'}))
 app.use(cors(corsOptions))
-app.use(logger(':remote-addr :id :method :url HTTP/:http-version :status :res[content-length] - :response-time ms'));
+app.use(logger(':id :method :url :response-time'));
 app.use(cookieParser())
 
 app.use('/account', authRouter);
