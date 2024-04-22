@@ -46,6 +46,8 @@ class GatewayController {
 }
 
 const convertResultDbToArray = (resultDb) => {
+  console.log(resultDb);
+
   if (!resultDb.implicitResults) {
     return []
   }
