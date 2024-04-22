@@ -31,7 +31,7 @@ var corsOptions = {
 };
 app.use(json({limit: '2mb'}))
 app.use(cors(corsOptions))
-app.use(logger('dev'));
+app.use(logger('combined'));
 app.use(cookieParser())
 
 app.use('/account', authRouter);
