@@ -10,7 +10,9 @@ class GatewayController {
 		const secretTokenTelegram = process.env.SECRET_TOKEN_TELEGRAM;
 		const tokenHeader = req.headers['x-telegram-bot-api-secret-token']
 
-		console.log(req.headers)
+		console.log(req.headers['x-telegram-bot-api-secret-token'])
+		console.log(secretTokenTelegram)
+		console.log(req.headers['x-telegram-bot-api-secret-token'] === secretTokenTelegram)
 
 		if (secretTokenTelegram !== tokenHeader || secretTokenTelegram !== "" || tokenHeader !== "") {
 			console.log('invalid secret token');
