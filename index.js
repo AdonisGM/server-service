@@ -11,6 +11,10 @@ const authRouter = require('./routes/auth');
 const gatewayRouter = require('./routes/gateway');
 const telegramWebhookRouter = require('./routes/telegramWebhook');
 
+logger.token('id', function getId (req) {
+  return req.id
+})
+
 const app = express();
 
 var subDomain = [
@@ -31,7 +35,7 @@ var corsOptions = {
 };
 app.use(json({limit: '2mb'}))
 app.use(cors(corsOptions))
-app.use(logger('remote-addr   :remote-addr   remote-user :remote-user :method :url HTTP/:http-version :status :res[content-length] - :response-time ms'));
+app.use(logger(':remote-addr :id :method :url HTTP/:http-version :status :res[content-length] - :response-time ms'));
 app.use(cookieParser())
 
 app.use('/account', authRouter);
