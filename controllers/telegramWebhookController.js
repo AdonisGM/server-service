@@ -8,7 +8,7 @@ class GatewayController {
 		const data = req.body;
 
 		const secretTokenTelegram = process.env.SECRET_TOKEN_TELEGRAM;
-		const tokenHeader = req.headers['X-Telegram-Bot-Api-Secret-Token']
+		const tokenHeader = req.headers['x-telegram-bot-api-secret-token']
 
 		console.log(req.headers)
 
