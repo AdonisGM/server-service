@@ -7,6 +7,14 @@ class GatewayController {
 		const dataUser = req.dataUser;
 		const data = req.body;
 
+		const secretTokenTelegram = process.env.SECRET_TOKEN_TELEGRAM;
+		const tokenHeader = req.headers['X-Telegram-Bot-Api-Secret-Token']
+
+		if (secretTokenTelegram !== tokenHeader) {
+			console.log('invalid secret token');
+			return res.status(401).send({})
+		}
+
 		let connection
 		try {
 			oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;

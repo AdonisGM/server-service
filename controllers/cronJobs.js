@@ -26,7 +26,6 @@ const getEventPending = async () => {
           .then(res => res.json())
           .then(res => {
               console.log('---- Send notification ----', data);
-              console.log(data);
               console.log(res);
           })
           .catch(err => console.log(err));
