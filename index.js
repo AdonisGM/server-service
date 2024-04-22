@@ -12,7 +12,7 @@ const gatewayRouter = require('./routes/gateway');
 const telegramWebhookRouter = require('./routes/telegramWebhook');
 
 logger.token('id', function getId (req) {
-  return req.id
+  return req.headers['x-forwarded-for']
 })
 
 const app = express();
