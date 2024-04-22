@@ -14,7 +14,7 @@ class GatewayController {
 		console.log(secretTokenTelegram)
 		console.log(req.headers['x-telegram-bot-api-secret-token'] === secretTokenTelegram)
 
-		if (secretTokenTelegram !== tokenHeader || secretTokenTelegram !== "" || tokenHeader !== "") {
+		if (secretTokenTelegram !== tokenHeader) {
 			console.log('invalid secret token');
 			return res.status(401).send({})
 		}
