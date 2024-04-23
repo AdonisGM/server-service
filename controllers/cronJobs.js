@@ -3,7 +3,7 @@ const oracledb = require('oracledb');
 const connectDatabase = require("../modal/database");
 
 const abc = schedule.scheduleJob('*/1 * * * * *', function () {
-    // getEventPending();
+    getEventPending(); 
 });
 
 const getEventPending = async () => {
