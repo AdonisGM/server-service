@@ -22,7 +22,7 @@ const getEventPending = async () => {
             },
         }
 
-        fetch(`https://api.telegram.org/bot${dataItem[0].TOKEN}/sendMessage`, data)
+        fetch(`https://api.telegram.org/bot${dataItem[0].TOKEN}${dataItem[0].C_METHOD}`, data)
           .then(res => res.json())
           .then(res => {
               console.log('---- Send notification ----', data);
