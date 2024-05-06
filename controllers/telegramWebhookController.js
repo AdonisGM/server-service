@@ -10,10 +10,6 @@ class GatewayController {
 		const secretTokenTelegram = process.env.SECRET_TOKEN_TELEGRAM;
 		const tokenHeader = req.headers['x-telegram-bot-api-secret-token']
 
-		console.log(req.headers['x-telegram-bot-api-secret-token'])
-		console.log(secretTokenTelegram)
-		console.log(req.headers['x-telegram-bot-api-secret-token'] === secretTokenTelegram)
-
 		if (secretTokenTelegram !== tokenHeader) {
 			console.log('invalid secret token');
 			return res.status(401).send({})
@@ -45,14 +41,14 @@ class GatewayController {
 
 			return res.json({data: dataRes});
 		} catch (error) {
-			console.log(error)
+			console.log(`${error.name} - ${error.message}`)
 			return res.json({data: ''});
 		} finally {
 			if (connection) {
 				try {
 					await connection.close();
 				} catch (err) {
-					console.error(err.message);
+					console.error(`${error.name} - ${error.message}`);
 				}
 			}
 		}
