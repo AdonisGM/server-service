@@ -15,6 +15,8 @@ class GatewayController {
 			return res.status(401).send({})
 		}
 
+		console.log(data);
+
 		let connection
 		try {
 			oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
