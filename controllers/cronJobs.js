@@ -28,7 +28,7 @@ const getEventPending = async () => {
               console.log('---- Send notification ----', data);
               console.log(res);
               try {
-                  const dataItem = await connectDatabase('pkg_tele_management.update_event', {
+                  const dataItem1 = await connectDatabase('pkg_tele_management.update_event', {
                       pk_event: dataItem[0].PK_TELE_SEND_MESSAGE,
                       res: JSON.stringify(res)
                   })
@@ -38,7 +38,7 @@ const getEventPending = async () => {
           })
           .catch(err => {
               console.log(err)
-              const dataItem = await connectDatabase('pkg_tele_management.update_event', {
+              const dataItem2 = await connectDatabase('pkg_tele_management.update_event', {
                   pk_event: dataItem[0].PK_TELE_SEND_MESSAGE,
                   res: JSON.stringify(err)
               })
