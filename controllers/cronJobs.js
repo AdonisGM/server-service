@@ -30,7 +30,7 @@ const getEventPending = async () => {
               try {
                   const dataItem = await connectDatabase('pkg_tele_management.update_event', {
                       pk_event: dataItem[0].PK_TELE_SEND_MESSAGE,
-                      res: JSON.stringfy(res)
+                      res: JSON.stringify(res)
                   })
               } catch (error) {
                   console.log(error)
