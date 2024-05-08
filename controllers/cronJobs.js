@@ -27,21 +27,21 @@ const getEventPending = async () => {
           .then(res => {
               console.log('---- Send notification ----', data);
               console.log(res);
-              try {
-                  const dataItem1 = await connectDatabase('pkg_tele_management.update_event', {
-                      pk_event: dataItem[0].PK_TELE_SEND_MESSAGE,
-                      res: JSON.stringify(res)
-                  })
-              } catch (error) {
-                  console.log(error)
-              }
+              // try {
+              //     const dataItem1 = await connectDatabase('pkg_tele_management.update_event', {
+              //         pk_event: dataItem[0].PK_TELE_SEND_MESSAGE,
+              //         res: JSON.stringify(res)
+              //     })
+              // } catch (error) {
+              //     console.log(error)
+              // }
           })
           .catch(err => {
               console.log(err)
-              const dataItem2 = await connectDatabase('pkg_tele_management.update_event', {
-                  pk_event: dataItem[0].PK_TELE_SEND_MESSAGE,
-                  res: JSON.stringify(err)
-              })
+              // const dataItem2 = await connectDatabase('pkg_tele_management.update_event', {
+              //     pk_event: dataItem[0].PK_TELE_SEND_MESSAGE,
+              //     res: JSON.stringify(err)
+              // })
           });
     }
 }
