@@ -1,5 +1,4 @@
 const oracledb = require("oracledb");
-const connectDatabase = require("../modal/database");
 const connection = require("oracledb/lib/connection");
 
 class GatewayController {

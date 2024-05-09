@@ -1,6 +1,6 @@
 const schedule = require('node-schedule');
 const oracledb = require('oracledb');
-const connectDatabase = require('../modal/database');
+const connectDatabase = require('../modal/databaseServer');
 
 const abc = schedule.scheduleJob('*/1 * * * * *', function () {
     getEventPending();
