@@ -1,6 +1,7 @@
 const oracledb = require("oracledb");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
+const {token} = require("morgan");
 
 class AuthController {
   Login = async (req, res) => {
@@ -53,16 +54,22 @@ class AuthController {
 
       return res
         .cookie("access_token", token, {
-          httpOnly: false,
+          httpOnly: true,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'none'
+          sameSite: 'lax'
         })
         .cookie("refresh_token", reToken, {
+          httpOnly: true,
+          secure: true,
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+          sameSite: 'lax'
+        })
+        .cookie("info", {username: username}, {
           httpOnly: false,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'none'
+          sameSite: 'lax'
         })
         .json({ message: "Logged in successfully 😊 👌" });
     } catch (error) {
@@ -171,20 +178,78 @@ class AuthController {
 
       return res
         .cookie("access_token", token, {
-          httpOnly: false,
+          httpOnly: true,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'none'
+          sameSite: 'lax'
         })
         .cookie("refresh_token", reToken, {
+          httpOnly: true,
+          secure: true,
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+          sameSite: 'lax'
+        })
+        .cookie("info", dataUser, {
           httpOnly: false,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'none'
+          sameSite: 'lax'
         })
         .json({ message: "Refresh token successfully" });
     } catch (error) {
       return res.status(499).json({error_message: error + ''});
+    } finally {
+      if (connection) {
+        try {
+          await connection.close();
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    }
+  }
+
+  Logout = async (req, res) => {
+    const refresh_token = req.cookies.refresh_token;
+
+    let connection
+    try {
+      oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+      connection = await oracledb.getConnection('admin');
+
+      let resultDb = await connection.execute(
+        `BEGIN
+            pkg_api.main_api(:user, :cmd, :data);
+        END;`,
+        {
+          user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'system'},
+          cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.delete_refresh_token'},
+          data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: refresh_token})}
+        }
+      );
+
+      let data = await convertResultDbToArray(resultDb);
+
+      if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
+        return res.status(400).json({error_message: data[0].MESSAGE_ERROR});
+      }
+
+      return res
+        .clearCookie("access_token", {
+          httpOnly: true,
+          secure: true,
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+          sameSite: 'lax'
+        })
+        .clearCookie("refresh_token", {
+          httpOnly: true,
+          secure: true,
+          domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+          sameSite: 'lax'
+        })
+        .json({ message: "Logout success" });
+    } catch (error) {
+      return res.status(400).json({error_message: error + ''});
     } finally {
       if (connection) {
         try {
