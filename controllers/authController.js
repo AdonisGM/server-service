@@ -65,7 +65,7 @@ class AuthController {
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
           sameSite: 'lax'
         })
-        .cookie("info", {username: username}, {
+        .cookie("info", username, {
           httpOnly: false,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
