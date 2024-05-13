@@ -26,6 +26,8 @@ var subDomain = [
   'https://diary.nmtung.dev',
   'http://localhost:5173',
   'https://localhost:5173',
+  'http://localhost:9999',
+  'https://localhost:9999',
   'http://localhost:5174',
   'https://localhost:5174',
 ]
@@ -35,7 +37,7 @@ var corsOptions = {
 };
 app.use(json({limit: '2mb'}))
 app.use(cors(corsOptions))
-app.use(logger('default'))
+app.use(logger('dev'))
 app.use(cookieParser())
 
 app.use('/account', authRouter);
