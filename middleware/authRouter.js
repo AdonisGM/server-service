@@ -4,7 +4,21 @@ const AuthRouter = (req, res, next) => {
   const access_token = req.cookies.access_token;
 
   if (!access_token) {
-    return res.status(401).json({error_message: 'Unauthorized'});
+    return res
+      .status(401)
+      .clearCookie("access_token", {
+        httpOnly: true,
+        secure: true,
+        domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+        sameSite: 'lax'
+      })
+      .clearCookie("info", {
+        httpOnly: false,
+        secure: true,
+        domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+        sameSite: 'lax'
+      })
+      .json({error_message: 'Unauthorized'});
   }
 
   try {
@@ -14,7 +28,21 @@ const AuthRouter = (req, res, next) => {
     next();
   } catch (error) {
     console.log(error)
-    return res.status(401).json({error_message: 'Unauthorized'});
+    return res
+      .status(401)
+      .clearCookie("access_token", {
+        httpOnly: true,
+        secure: true,
+        domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+        sameSite: 'lax'
+      })
+      .clearCookie("info", {
+        httpOnly: false,
+        secure: true,
+        domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
+        sameSite: 'lax'
+      })
+      .json({error_message: 'Unauthorized'});
   }
 }
 
