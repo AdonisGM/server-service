@@ -10,13 +10,13 @@ const AuthRouter = (req, res, next) => {
         httpOnly: true,
         secure: true,
         domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-        sameSite: 'lax'
+        sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
       })
       .clearCookie("info", {
         httpOnly: false,
         secure: true,
         domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-        sameSite: 'lax'
+        sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
       })
       .json({error_message: 'Unauthorized'});
   }
@@ -34,13 +34,13 @@ const AuthRouter = (req, res, next) => {
         httpOnly: true,
         secure: true,
         domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-        sameSite: 'lax'
+        sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
       })
       .clearCookie("info", {
         httpOnly: false,
         secure: true,
         domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-        sameSite: 'lax'
+        sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
       })
       .json({error_message: 'Unauthorized'});
   }

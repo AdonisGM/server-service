@@ -25,12 +25,12 @@ class AuthController {
       let data = convertResultDbToArray(resultDb);
 
       if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
-        return res.json({error_message: data[0].MESSAGE_ERROR});
+        return res.json({error_message: 'Username or password is incorrect'});
       }
 
       const isSamePass = await bcrypt.compare(password, data[0].C_PASSWORD)
       if (!(username === data[0].C_USERNAME && isSamePass)) {
-        return res.json({error_message: 'Khong hop le'});
+        return res.json({error_message: 'Username or password is incorrect'});
       }
 
       const {token, reToken} = generateToken({username: username}, {username: username});
@@ -57,19 +57,19 @@ class AuthController {
           httpOnly: true,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'lax'
+          sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
         })
         .cookie("refresh_token", reToken, {
           httpOnly: true,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'lax'
+          sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
         })
         .cookie("info", username, {
           httpOnly: false,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'lax'
+          sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
         })
         .json({ message: "Logged in successfully 😊 👌" });
     } catch (error) {
@@ -181,19 +181,19 @@ class AuthController {
           httpOnly: true,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'lax'
+          sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
         })
         .cookie("refresh_token", reToken, {
           httpOnly: true,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'lax'
+          sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
         })
         .cookie("info", dataUser.username, {
           httpOnly: false,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'lax'
+          sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
         })
         .json({ message: "Refresh token successfully" });
     } catch (error) {
@@ -239,13 +239,13 @@ class AuthController {
           httpOnly: true,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'lax'
+          sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
         })
         .clearCookie("refresh_token", {
           httpOnly: true,
           secure: true,
           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-          sameSite: 'lax'
+          sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
         })
         .json({ message: "Logout success" });
     } catch (error) {
