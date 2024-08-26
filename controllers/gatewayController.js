@@ -8,6 +8,7 @@ class GatewayController {
     let connection
     try {
       oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+	  oracledb.fetchAsString = [ oracledb.CLOB ];
       connection = await oracledb.getConnection('admin');
 
       let resultDb = await connection.execute(
@@ -32,6 +33,7 @@ class GatewayController {
 
       return res.json({data: dataRes});
     } catch (error) {
+	  console.error(err.message);
       return res.json({error_message: error.message});
     } finally {
       if (connection) {
