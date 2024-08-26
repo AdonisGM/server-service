@@ -33,7 +33,7 @@ class GatewayController {
 
       return res.json({data: dataRes});
     } catch (error) {
-	  console.error(err.message);
+	  console.error(err.message); 
       return res.json({error_message: error.message});
     } finally {
       if (connection) {
