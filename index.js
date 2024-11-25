@@ -44,6 +44,7 @@ app.use(cookieParser())
 
 app.use('/account', authRouter);
 app.use('/gateway', gatewayRouter);
+app.use('/game/gomoku', gatewayRouter);
 app.use('/telegram_webhook', telegramWebhookRouter);
 
 require('./controllers/gomokuSocket')(server);
