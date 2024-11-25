@@ -4,6 +4,7 @@ const cors = require("cors");
 const {json} = require("body-parser");
 const oracledb = require("oracledb");
 const cookieParser = require("cookie-parser");
+const { createServer } = require('http');
 require('dotenv').config()
 
  
@@ -16,6 +17,7 @@ logger.token('id', function getId (req) {
 })
 
 const app = express();
+const server = createServer(app);
 
 var subDomain = [
   'https://budgoose.nmtung.dev',
@@ -44,6 +46,8 @@ app.use('/account', authRouter);
 app.use('/gateway', gatewayRouter);
 app.use('/telegram_webhook', telegramWebhookRouter);
 
+require('./controllers/gomokuSocket')(server);
+
 function init() {
   try {
     oracledb.createPool({
@@ -56,13 +60,11 @@ function init() {
       poolAlias     : 'admin'
     }).then(() => {
       console.log('Connected to database: Admin');
-
-      const cronJobs = require('./controllers/cronJobs');
     }).catch((e) => {
       console.log('Connect fail database: Admin ' + e.message);
     });
     const port = process.env.PORT || 5000
-    app.listen(port, () => {
+    server.listen(port, () => {
       console.log('---=== Server started ===---')
     })
   } catch (err) {
