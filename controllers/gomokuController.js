@@ -1,14 +1,13 @@
 const oracledb = require("oracledb");
 
-class GatewayController {
-  Index = async (req, res) => {
+class GomokuController {
+  CreateNewGame = async (req, res) => {
     const dataUser = req.dataUser;
     const {cmd, data} = req.body;
 
     let connection
     try {
       oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
-	  oracledb.fetchAsString = [ oracledb.CLOB ];
       connection = await oracledb.getConnection('admin');
 
       let resultDb = await connection.execute(
@@ -33,7 +32,6 @@ class GatewayController {
 
       return res.json({data: dataRes});
     } catch (error) {
-	  console.error(err.message); 
       return res.json({error_message: error.message});
     } finally {
       if (connection) {
@@ -55,4 +53,4 @@ const convertResultDbToArray = (resultDb) => {
   return resultDb.implicitResults[0];
 }
 
-module.exports = new GatewayController();
+module.exports = new GomokuController();
