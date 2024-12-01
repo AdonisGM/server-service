@@ -1,6 +1,6 @@
 const oracledb = require("oracledb");
 
-const connectDatabase = async (username, cmd, data) => {
+const connectDatabaseService = async (username, cmd, data) => {
 	console.log(username, cmd, data)
 
 	let connection
@@ -11,7 +11,7 @@ const connectDatabase = async (username, cmd, data) => {
 		let resultDb = await connection.execute(
 			`
 			BEGIN
-				pkg_api_server.main_api(:user, :cmd, :data);
+				pkg_api.main_api(:user, :cmd, :data);
 			END;`,
 			{
 				user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: username},
@@ -44,4 +44,4 @@ const convertResultDbToArray = (resultDb) => {
 	return resultDb.implicitResults[0];
 }
 
-module.exports = connectDatabase
+module.exports = connectDatabaseService
