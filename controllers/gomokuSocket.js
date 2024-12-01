@@ -17,6 +17,7 @@ function gomokuSocket (server) {
                 'https://www.nmtung.dev',
                 'https://account.nmtung.dev',
                 'https://diary.nmtung.dev',
+                'https://gomoku.nmtung.dev',
                 'http://localhost:5173',
                 'https://localhost:5173',
                 'http://localhost:9999',
