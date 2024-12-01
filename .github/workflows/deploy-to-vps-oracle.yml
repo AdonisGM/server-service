@@ -7,8 +7,6 @@ on:
     paths-ignore:
       - 'sql_package/**'
       - 'sql_table/**'
-  schedule:
-    - cron: "0 1 * * *"
 
 jobs:
   build:
