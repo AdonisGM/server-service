@@ -27,77 +27,28 @@ function gomokuSocket (server) {
         }
     });
 
-    io.engine.on("initial_headers", async (headers, req) => {
-        const parseCookie = cookie.parse(req.headers.cookie)
-        const refresh_token = parseCookie.refresh_token
-        const data = await refreshToken(refresh_token)
-
-        if (data) {
-            const cookieAccessToken = cookie.serialize('access_token', data.token, {
-                httpOnly: true,
-                secure: true,
-                domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-                sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
-            })
-            const cookieRefreshToken = cookie.serialize('refresh_token', data.reToken, {
-                httpOnly: true,
-                secure: true,
-                domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-                sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
-            })
-            const cookieInfo = cookie.serialize('info', data.dataUser.username, {
-                httpOnly: true,
-                secure: true,
-                domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-                sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
-            })
-
-            headers['set-cookie'] = cookieAccessToken
-            /**
-             * .cookie("access_token", token, {
-             *           httpOnly: true,
-             *           secure: true,
-             *           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-             *           sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
-             *         })
-             *         .cookie("refresh_token", reToken, {
-             *           httpOnly: true,
-             *           secure: true,
-             *           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-             *           sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
-             *         })
-             *         .cookie("info", dataUser.username, {
-             *           httpOnly: false,
-             *           secure: true,
-             *           domain: process.env.ENVIRONMENT === 'production' ? '.nmtung.dev' : 'localhost',
-             *           sameSite: process.env.ENVIRONMENT === 'production' ? 'lax' : 'none'
-             *         })
-             */
-        } else {
-
-        }
-    });
-
     io
         .use(async (socket, next) => {
+            console.log('io.use() running ...')
+
             const parseCookie = cookie.parse(socket.handshake.headers.cookie)
             const access_token = parseCookie.access_token
 
             let username
 
-            if (!access_token || !refresh_token) {
-                socket.emit('unauthorized', 'unauthorized');
-                socket.disconnect();
-                return
+            if (!access_token) {
+                // socket.emit('unauthorized', 'unauthorized');
+                // socket.disconnect();
+                // return
             }
 
             try {
                 username = getUserInfoByToken(access_token)
             } catch (e) {
                 // try to refresh token
-                socket.emit('unauthorized', 'unauthorized');
-                socket.disconnect();
-                return
+                // socket.emit('unauthorized', 'unauthorized');
+                // socket.disconnect();
+                // return
             }
 
             socket.data = {
@@ -107,6 +58,12 @@ function gomokuSocket (server) {
         })
         .on('connection', (socket) => {
             let username = socket.data.username
+
+            if (!username) {
+                socket.emit('unauthorized', 'unauthorized');
+                socket.disconnect()
+                return
+            }
 
             // Handle user disconnected
             socket.on('disconnect', () => {
@@ -129,20 +86,26 @@ function gomokuSocket (server) {
                         error_code: -99,
                         error_message: res[0].MESSAGE_ERROR.replace(/ORA-\d{5}: /g, ''),
                     });
+
+                    return
                 }
 
-                if (res.length === 0) {
-                    socket.emit('info', {
-                        action: 'createGame',
-                        data: {
-                            matchId: matchId
-                        },
-                    });
+                socket.emit('info',  {
+                    action: 'createGame',
+                    data: {
+                        matchId: matchId
+                    },
+                });
 
-                    socket.join(matchId)
+                socket.join(matchId)
 
-                    io.to(matchId).emit('logsMatch', `Player ${username} create match!`)
-                }
+                io.to(matchId).emit('logsMatch', `Player ${username} create match!`)
+
+                res = await connectDatabaseService(username, 'pkg_gmk_game.get_all_member', {
+                    matchId: matchId
+                })
+
+                io.to(matchId).emit('listMember', res)
             })
 
             // Handle join game action
@@ -159,26 +122,56 @@ function gomokuSocket (server) {
                         error_code: -99,
                         error_message: res[0].MESSAGE_ERROR.replace(/ORA-\d{5}: /g, ''),
                     });
+
+                    return
                 }
 
-                if (res.length === 0) {
-                    socket.emit('info', {
-                        action: 'joinGame',
-                        data: {
-                            matchId: matchId
-                        },
-                    });
-
-                    socket.join(matchId)
-
-                    io.to(matchId).emit('logsMatch', `Player ${username} join match!`)
-
-                    let res = await connectDatabaseService(username, 'pkg_gmk_game.get_all_step', {
+                socket.emit('info', {
+                    action: 'joinGame',
+                    data: {
                         matchId: matchId
-                    })
+                    },
+                });
 
-                    socket.emit('allMove', res)
+                socket.join(matchId)
+
+                io.to(matchId).emit('logsMatch', `Player ${username} join match!`)
+
+                res = await connectDatabaseService(username, 'pkg_gmk_game.get_all_step', {
+                    matchId: matchId
+                })
+
+                socket.emit('allMove', res)
+
+                res = await connectDatabaseService(username, 'pkg_gmk_game.get_all_member', {
+                    matchId: matchId
+                })
+
+               io.to(matchId).emit('listMember', res)
+
+                if (res.length !== 2) {
+                    return
                 }
+
+                res = await connectDatabaseService(username, 'pkg_gmk_game.start_game', {
+                    matchId: matchId
+                })
+
+                io.to(matchId).emit('info', {
+                    action: 'startGame',
+                    data: {
+                        matchId: matchId
+                    },
+                });
+
+                res = await connectDatabaseService(username, 'pkg_gmk_game.get_info_game', {
+                    matchId: matchId
+                })
+
+                io.to(matchId).emit('info', {
+                    action: 'infoGame',
+                    data: res
+                });
             })
 
             // Handle move action
@@ -227,7 +220,32 @@ function gomokuSocket (server) {
                     return;
                 }
 
-                io.to(matchId).emit('move', res)
+                res = await connectDatabaseService(username, 'pkg_gmk_game.get_all_step', {
+                    matchId: matchId
+                })
+
+                io.to(matchId).emit('allMove', res)
+
+                const isWin = checkWinGomoku('TYPE_1', res, {x: locationX, y: locationY, player: username})
+
+                if (isWin) {
+                    res = await connectDatabaseService(username, 'pkg_gmk_game.finish_game', {
+                        matchId: matchId
+                    })
+                } else if (res.length === 20 * 20) {
+                    res = await connectDatabaseService(username, 'pkg_gmk_game.draw_game', {
+                        matchId: matchId
+                    })
+                }
+
+                res = await connectDatabaseService(username, 'pkg_gmk_game.get_info_game', {
+                    matchId: matchId
+                })
+
+                io.to(matchId).emit('info', {
+                    action: 'infoGame',
+                    data: res
+                });
             })
 
             // Handle test emit
@@ -249,93 +267,162 @@ function getUserInfoByToken (token) {
     return decoded.data.username
 }
 
-async function refreshToken (refresh_token) {
-    let connection
-    try {
-        oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
-        connection = await oracledb.getConnection('admin');
+const checkWinGomoku = (type, steps, lastMove) => {
+    console.log(steps)
 
-        let resultDb = await connection.execute(
-            `BEGIN
-            pkg_api.main_api(:user, :cmd, :data);
-        END;`,
-            {
-                user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'system'},
-                cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.get_refresh_token'},
-                data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: refresh_token})}
+    let arrSource = []
+    let currentPlayer = lastMove.player
+
+    function fnConvertDataToArray () {
+        steps.map((step) => {
+            return {
+                x: step.C_LOCATION_X,
+                y: step.C_LOCATION_Y,
+                player: step.C_USERNAME,
             }
-        );
-
-        let data = await convertResultDbToArray(resultDb);
-
-        if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
-            return null;
-        }
-
-        const dataUser = {
-            username: data[0].C_USERNAME
-        }
-        const {token, reToken} = generateToken(dataUser, dataUser);
-
-        resultDb = await connection.execute(
-            `BEGIN
-            pkg_api.main_api(:user, :cmd, :data);
-        END;`,
-            {
-                user: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: data[0].C_USERNAME},
-                cmd: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: 'pkg_user.create_refresh_token'},
-                data: { dir: oracledb.BIND_IN, type: oracledb.STRING, val: JSON.stringify({refreshToken: reToken, refreshTokenOld: refresh_token})}
+        }).forEach(step => {
+            // check arr source
+            if (!arrSource[step.y]) {
+                arrSource[step.y] = []
             }
-        );
 
-        data = await convertResultDbToArray(resultDb);
-
-        if (data.length === 1 && data[0].MESSAGE_ERROR != null) {
-            return null;
-        }
-
-        return {
-            token, reToken, dataUser
-        }
-    } catch (error) {
-        return null;
-    } finally {
-        if (connection) {
-            try {
-                await connection.close();
-            } catch (err) {
-                console.error(err);
-            }
-        }
-    }
-}
-
-function convertResultDbToArray(resultDb) {
-    if (!resultDb.implicitResults) {
-        return []
+            arrSource[step.y][step.x] = step.player
+        })
     }
 
-    return resultDb.implicitResults[0];
-}
+    function fnGetLocation (x, y) {
+        if (!arrSource[y]) {
+            return undefined
+        }
 
-function generateToken(dataToken, dataRetoken) {
-    console.log(dataToken, dataRetoken)
+        if (!arrSource[y][x]) {
+            return undefined
+        }
 
-    // exp 30min
-    const token = jwt.sign({
-        exp: Math.floor(Date.now() / 1000) + (60 * 10),
-        data: dataToken,
-    }, process.env.SECRET_KEY);
-    // exp 7day
-    const reToken = jwt.sign({
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7),
-        data: dataRetoken,
-    }, process.env.SECRET_KEY_RE);
-
-    return {
-        token: token,
-        reToken: reToken
+        return arrSource[y][x]
     }
+
+    function fnCheckWinVertical () {
+        let count = 0
+        let index = 0
+        while (fnGetLocation(lastMove.x, lastMove.y + index)) {
+            const value = fnGetLocation(lastMove.x, lastMove.y + index)
+
+            if (value === currentPlayer) {
+                count++;
+                index++;
+            } else {
+                break;
+            }
+        }
+
+        index = 1
+        while (fnGetLocation(lastMove.x, lastMove.y - index)) {
+            const value = fnGetLocation(lastMove.x, lastMove.y - index)
+
+            if (value === currentPlayer) {
+                count++;
+                index++;
+            } else {
+                break;
+            }
+        }
+
+        return fnCheckWinType(count)
+    }
+
+    function fnCheckWinHorizon () {
+        let count = 0
+        let index = 0
+        while (fnGetLocation(lastMove.x + index, lastMove.y)) {
+            const value = fnGetLocation(lastMove.x + index, lastMove.y)
+
+            if (value === currentPlayer) {
+                count++;
+                index++;
+            } else {
+                break;
+            }
+        }
+
+        index = 1
+        while (fnGetLocation(lastMove.x - index, lastMove.y)) {
+            const value = fnGetLocation(lastMove.x - index, lastMove.y)
+
+            if (value === currentPlayer) {
+                count++;
+                index++;
+            } else {
+                break;
+            }
+        }
+
+        return fnCheckWinType(count)
+    }
+
+    function fnCheckWinCross () {
+        let count = 0
+        let index = 0
+        while (fnGetLocation(lastMove.x + index, lastMove.y + index)) {
+            const value = fnGetLocation(lastMove.x + index, lastMove.y + index)
+
+            if (value === currentPlayer) {
+                count++;
+                index++;
+            } else {
+                break;
+            }
+        }
+
+        index = 1
+        while (fnGetLocation(lastMove.x - index, lastMove.y - index)) {
+            const value = fnGetLocation(lastMove.x - index, lastMove.y - index)
+
+            if (value === currentPlayer) {
+                count++;
+                index++;
+            } else {
+                break;
+            }
+        }
+
+        return fnCheckWinType(count)
+    }
+
+    function fnCheckWinType (count) {
+        if (type === 'TYPE_1' && count === 5) {
+            return true
+        }
+
+        if (type === 'TYPE_2' && count >= 5) {
+            return true
+        }
+
+        return false
+    }
+
+    fnConvertDataToArray()
+    console.table(arrSource)
+
+    let isWin = fnCheckWinVertical()
+    if (isWin) {
+        console.log(`${currentPlayer} win!!!`)
+        return true
+    }
+
+    isWin = fnCheckWinHorizon()
+    if (isWin) {
+        console.log(`${currentPlayer} win!!!`)
+        return true
+    }
+
+    isWin = fnCheckWinCross()
+    if (isWin) {
+        console.log(`${currentPlayer} win!!!`)
+        return true
+    }
+
+    return false
 }
 
 module.exports = gomokuSocket
