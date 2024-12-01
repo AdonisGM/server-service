@@ -269,8 +269,6 @@ function getUserInfoByToken (token) {
 }
 
 const checkWinGomoku = (type, steps, lastMove) => {
-    console.log(steps)
-
     let arrSource = []
     let currentPlayer = lastMove.player
 
@@ -390,6 +388,35 @@ const checkWinGomoku = (type, steps, lastMove) => {
         return fnCheckWinType(count)
     }
 
+    function fnCheckWinCrossOr () {
+        let count = 0
+        let index = 0
+        while (fnGetLocation(lastMove.x + index, lastMove.y - index)) {
+            const value = fnGetLocation(lastMove.x + index, lastMove.y - index)
+
+            if (value === currentPlayer) {
+                count++;
+                index++;
+            } else {
+                break;
+            }
+        }
+
+        index = 1
+        while (fnGetLocation(lastMove.x - index, lastMove.y + index)) {
+            const value = fnGetLocation(lastMove.x - index, lastMove.y + index)
+
+            if (value === currentPlayer) {
+                count++;
+                index++;
+            } else {
+                break;
+            }
+        }
+
+        return fnCheckWinType(count)
+    }
+
     function fnCheckWinType (count) {
         if (type === 'TYPE_1' && count === 5) {
             return true
@@ -418,6 +445,12 @@ const checkWinGomoku = (type, steps, lastMove) => {
     }
 
     isWin = fnCheckWinCross()
+    if (isWin) {
+        console.log(`${currentPlayer} win!!!`)
+        return true
+    }
+
+    isWin = fnCheckWinCrossOr()
     if (isWin) {
         console.log(`${currentPlayer} win!!!`)
         return true
