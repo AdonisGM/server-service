@@ -62,6 +62,8 @@ function init() {
       poolAlias     : 'admin'
     }).then(() => {
       console.log('Connected to database: Admin');
+
+      const cronJobs = require('./controllers/cronJobs');
     }).catch((e) => {
       console.log('Connect fail database: Admin ' + e.message);
     });
