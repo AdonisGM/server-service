@@ -260,6 +260,66 @@ function gomokuSocket (server) {
                     },
                 });
             })
+
+            // Handle join game action
+            socket.on('viewGame', async (dataMessage) => {
+                let matchId = dataMessage.matchId
+
+                // add to database
+                let res = await connectDatabaseService(username, 'pkg_gmk_game.check_view_game', {
+                    matchId: matchId
+                })
+
+                if (res.length === 1 && res[0].MESSAGE_ERROR != null) {
+                    socket.emit('error', {
+                        error_code: -99,
+                        error_message: res[0].MESSAGE_ERROR.replace(/ORA-\d{5}: /g, ''),
+                    });
+
+                    return
+                }
+
+                socket.emit('info', {
+                    action: 'joinGame',
+                    data: {
+                        matchId: matchId
+                    },
+                });
+
+                socket.join(matchId)
+
+                res = await connectDatabaseService(username, 'pkg_gmk_game.get_all_step', {
+                    matchId: matchId
+                })
+
+                socket.emit('allMove', res)
+
+                res = await connectDatabaseService(username, 'pkg_gmk_game.get_all_member', {
+                    matchId: matchId
+                })
+
+                io.to(matchId).emit('listMember', res)
+
+                if (res.length !== 2) {
+                    return
+                }
+
+                res = await connectDatabaseService(username, 'pkg_gmk_game.get_info_game', {
+                    matchId: matchId
+                })
+
+                io.to(matchId).emit('info', {
+                    action: 'infoGame',
+                    data: res
+                });
+
+                io.to(matchId).emit('info', {
+                    action: 'startGame',
+                    data: {
+                        matchId: matchId
+                    },
+                });
+            })
         });
 }
 
