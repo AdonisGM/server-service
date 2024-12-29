@@ -22,9 +22,9 @@ class GatewayController {
           data: { dir: oracledb.BIND_IN, type: oracledb.CLOB, val: JSON.stringify(data)}
         }
       );
-
+      
       let dataRes = convertResultDbToArray(resultDb);
-
+      console.log(dataRes)
       if (dataRes.length === 1 && dataRes[0].MESSAGE_ERROR != null) {
         return res.status(400).json({
           error_message: dataRes[0].MESSAGE_ERROR.replace(/ORA-\d{5}: /g, ''),
